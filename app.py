@@ -490,7 +490,7 @@ def main():
                         # Get count of no. of people Placed
                         placed = (df[mask]['Candidate Placed'] == 1).sum()
 
-                        # Get highest salaries in P1,p2 & p3
+                        # Get corresponding salaries in P1,p2 & p3
                         p1 = (df[mask].loc[df['P1'] == 1, 'Salary'])
                         p2 = (df[mask].loc[df['P2'] == 1, 'Salary'])
                         p3 = (df[mask].loc[df['P3'] == 1, 'Salary'])
@@ -505,18 +505,22 @@ def main():
 
                         st.plotly_chart(sun_burst_placed)
                         st.markdown(f'*Number of Candidates Placed :{placed}*')
-                        st.markdown(
-                            f'*Highest Salary in 1st Month :{max(p1)}*')
-                        st.markdown(
-                            f'*Highest Salary in 2nd Month :{max(p2)}*')
-                        st.markdown(
-                            f'*Highest Salary in 3rd Month :{max(p3)}*')
-                        st.markdown(
-                            f'*Average Salary in 1st Month :{round(p1.mean(),0)}*')
-                        st.markdown(
-                            f'*Average Salary in 2nd Month :{round(p2.mean(),0)}*')
-                        st.markdown(
-                            f'*Average Salary in 3rd Month :{round(p3.mean(),0)}*')
+
+                        st.markdown("<h3 style='text-align: center;'> 3 Months Salaries( TP1, TP2 & TP3) </h3>",
+                                    unsafe_allow_html=True)
+
+                        fig = go.Figure()
+                        Months = ['P1', 'P2', 'P3']
+
+                        for month in Months:
+                            fig.add_trace(go.Violin(y=df[mask].loc[df[month] == 1, 'Salary'],
+                                                    name=month,
+                                                    box_visible=True,
+                                                    meanline_visible=True))
+                            fig.update_layout(width=800, height=600,
+                                              yaxis_title="Salaries")
+
+                        st.plotly_chart(fig)
 
                 except Exception as e:
                     print(e)
