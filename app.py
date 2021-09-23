@@ -2,6 +2,8 @@ import sqlite3
 import pandas as pd
 from os import name, path
 import os
+import datetime
+import random
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
@@ -70,7 +72,7 @@ def load_lottieurl(url: str):
 def main():
     """Simple Login App"""
 
-    st.set_page_config(page_title='Data Analyzer')
+    st.set_page_config(page_title='Data Analyzer', layout='wide')
 
     lottie_anime = load_lottieurl(
         "https://assets6.lottiefiles.com/packages/lf20_su8vw1n6.json")
@@ -143,97 +145,47 @@ def main():
                         df['Certified'] = df['Certified'].fillna('No')
                         df['Candidate Placed'] = df['Candidate Placed'].fillna(
                             'No')
-                        df['Education Level'] = df['Education Level'].fillna(
-                            'Uneducated')
-                        df.dropna(axis=1, inplace=True)
 
                         # TO update values accordingly
-                        # Updates Duplicated States
+
+                        # Updating States column
                         df.replace(to_replace='ANDHRA PRADESH',
                                    value='Andhra Pradesh', inplace=True)
                         df.replace(to_replace='TELANGANA',
                                    value='Telangana', inplace=True)
-                        # Update Similar Education levels
-                        df.replace(to_replace=['9th to 10th', 'SSC'],
-                                   value='10th Class', inplace=True)
-                        df.replace(to_replace=['ITI', '10th Class/I.T.I',
-                                               '12th Class/I.T.I'], value='I.T.I', inplace=True)
-                        df.replace(to_replace=['Un Educated', 'Other', 'Not Applicable',
-                                               'Certificate'], value='Uneducated', inplace=True)
-                        df.replace(to_replace=['11th to 12th', '12th Class/Diploma',
-                                               'Inter'], value='12th Class', inplace=True)
-                        df.replace(to_replace=['B.E./B.Tech', 'B.Tech', 'B.E.', 'B.Pharma',
-                                               'B.Sc', 'B.Com'], value='Under Graduate', inplace=True)
-                        df.replace(to_replace=['6th Class', '5th Class', '7th Class',
-                                               '8th Class'], value='5th to 8th', inplace=True)
-                        # Update Similar Gender Duplicates
-                        df.replace(to_replace='M', value='Male', inplace=True)
-                        df.replace(to_replace='F',
-                                   value='Female', inplace=True)
-                        # Update Certified Column
+
+                        # Updating Certified Column
                         df.replace(to_replace=['FAIL', 'Not Appeared',
                                                'Dropout'], value='No', inplace=True)
                         df.replace(to_replace=['PASS'],
                                    value='Yes', inplace=True)
 
-                        # Streamlit Selection
-                        gender = df['Gender'].unique().tolist()
-                        Education = df['Education Level'].unique().tolist()
-                        states = df['Centre State'].unique().tolist()
-                        center_name = df['Centre Name'].unique().tolist()
-                        job_role = df['Job Role'].unique().tolist()
-                        scheme = df['Scheme'].unique().tolist()
+                        # Updating Year Column
+                        df_arr = []
+                        for val in df['Year']:
+                            if type(val) == str:
+                                if val[4] == '-':
+                                    df_arr.append(int(val.split('-')[0]))
+                                elif val[2] == '/':
+                                    df_arr.append(int(val.split('/')[2]))
 
-                        c1, c2 = st.columns(2)
-                        # Multiple Gender Selection
-                        gender_selection = c1.multiselect('GENDER :',
-                                                          gender)  # Set default=gener(if by default all values r needed!)
-                        # Multiple Schemes Selection
-                        m1 = (df['Gender'].isin(gender_selection))
-                        filter_scheme = df[m1]['Scheme'].unique().tolist()
-                        # Scheme Selection
-                        scheme_selection = c2.multiselect('SCHEME :',
-                                                          filter_scheme)
+                            elif type(val) == datetime.datetime:
+                                df_arr.append(val.timetuple().tm_year)
 
-                        c3, c4 = st.columns(2)
-                        # Multiple Education Qualifications Selection
-                        m2 = (df['Gender'].isin(gender_selection)) & (
-                            df['Scheme'].isin(scheme_selection))
-                        filter_education = df[m2]['Education Level'].unique(
-                        ).tolist()
-                        # Education Selection
-                        education_selection = c3.multiselect('EDUCATION :',
-                                                             filter_education)
+                        df['Year'] = df_arr
 
-                        # Multiple States Selection
-                        m3 = (df['Gender'].isin(gender_selection)) & (df['Scheme'].isin(
-                            scheme_selection)) & (df['Education Level'].isin(education_selection))
-                        states_filter = df[m3]['Centre State'].unique(
-                        ).tolist()
-                        # States selection
-                        states_selection = c4.multiselect('STATE :',
-                                                          states_filter)  # Set default=states(if by default all values r needed!)
-                        # c5, c6 = st.columns(2)
-                        # Multiple Centres Selection
-                        m4 = (df['Gender'].isin(gender_selection)) & (df['Scheme'].isin(scheme_selection)) & (
-                            df['Education Level'].isin(education_selection)) & (df['Centre State'].isin(states_selection))
-                        centre_filter = df[m4]['Centre Name'].unique().tolist()
-                        center_name_selection = st.multiselect('CENTER :',  # Use " & (df['Centre Name'].isin(center_name_selection)) " when uncommented
-                                                               centre_filter)
+                        # Get Salaries, Tp1,.. based on if placed, as its dummy data
+                        df['Salary'] = df['Candidate Placed']
+                        df['TP1'] = df['Candidate Placed']
+                        df['TP2'] = df['Candidate Placed']
+                        df['TP3'] = df['Candidate Placed']
 
-                        # Multiple Job roles Selection
-                        # job_role_selection = c6.multiselect('JOB ROLE :',         ##  Use " & (df['job Role'].isin(job_role_selection)) " when uncommented
-                        # job_role)  # Set default=gener(if by default all values r needed!)
+                        # give mean salary of 8000 , if salary=yes
+                        sal_choice = [5000, 6000, 7000,
+                                      8000, 9000, 10000, 11000, 12000]
+                        df['Salary'].replace(
+                            to_replace='Yes', value=random.choice(sal_choice), inplace=True)
 
-                        # Filter Data Based on User Selection
-                        mask = (df['Gender'].isin(gender_selection)) & (df['Education Level'].isin(education_selection)) & (
-                            df['Centre State'].isin(states_selection)) & (df['Scheme'].isin(scheme_selection)) & (df['Centre Name'].isin(center_name_selection))
-
-                        number_of_results = df[mask].shape[0]
-                        st.markdown(
-                            f'*Available Results :{number_of_results}*')
-
-                        # Converting Categorical to Numerical Data
                         # A new column to know How many have enrolled!
                         df['Enrolled'] = 1
                         df.loc[df['Certified'] == "Yes", 'Certified'] = 1
@@ -242,80 +194,125 @@ def main():
                                "Yes", 'Candidate Placed'] = 1
                         df.loc[df['Candidate Placed'] ==
                                "No", 'Candidate Placed'] = 0
-                        # Sunburst
-                        st.markdown("<h2 style='text-align: left;'> Visualization </h2>",
+
+                        # Streamlit Selection
+                        states = df['Centre State'].unique().tolist()
+                        center_name = df['Centre Name'].unique().tolist()
+                        job_role = df['Job Role'].unique().tolist()
+                        scheme = df['Scheme'].unique().tolist()
+                        year = df['Year'].unique().tolist()
+
+                        # Year slider
+                        year_selection = st.slider('YEAR:',
+                                                   min_value=min(year),
+                                                   max_value=max(year),
+                                                   value=(min(year), max(year)))
+                        c1, c2 = st.columns(2)
+                        scheme_selection = c1.multiselect(
+                            'SCHEME :', scheme, default=scheme)
+
+                        # Multiple States Selection
+                        m1 = (df['Scheme'].isin(scheme_selection)) & (
+                            df['Year'].isin(year_selection))
+                        states_filter = df[m1]['Centre State'].unique(
+                        ).tolist()
+                        # States selection
+                        states_selection = c2.multiselect('STATE :',
+                                                          states_filter)  # Set default=states(if by default all values r needed!)
+                        # c5, c6 = st.columns(2)
+                        # Multiple Centres Selection
+                        m2 = (df['Scheme'].isin(scheme_selection)) & (df['Year'].isin(year_selection)) & (
+                            df['Centre State'].isin(states_selection))
+                        centre_filter = df[m2]['Centre Name'].unique().tolist()
+                        center_name_selection = st.multiselect('CENTER :',  # Use " & (df['Centre Name'].isin(center_name_selection)) " when uncommented
+                                                               centre_filter)
+
+                        # Filter Data Based on User Selection
+                        mask = (df['Scheme'].isin(scheme_selection)) & (df['Year'].isin(year_selection)) & (df['Centre State'].isin(
+                            states_selection)) & (df['Centre Name'].isin(center_name_selection))
+
+                        # Filter Data Based on User Selection
+                        mask = (df['Scheme'].isin(scheme_selection)) & (df['Year'].isin(year_selection)) & (df['Centre State'].isin(
+                            states_selection)) & (df['Centre Name'].isin(center_name_selection))
+
+                        number_of_results = df[mask].shape[0]
+                        st.markdown(
+                            f'*Available Results :{number_of_results}*')
+                        st.markdown("<h1 style='text-align: center; '> Visualization </h1>",
                                     unsafe_allow_html=True)
 
-                        sun_burst_enrolled = px.sunburst(df[mask], path=['Gender', 'Education Level', 'Centre State',
-                                                                         'Centre Name', 'Job Role'], values='Enrolled',
-                                                         width=600, height=600)
+                        sun_burst_enrolled = px.sunburst(df[mask], path=['Centre State',
+                                                                         'Centre Name', 'Job Role'], values='Enrolled', color_discrete_sequence=px.colors.qualitative.Set3, width=500, height=500)
                         sun_burst_enrolled.update_layout(margin=dict(
                             t=0, b=0, l=0, r=0))
                         # sun_burst_enrolled.update_layout(uniformtext=dict(minsize=10,mode='hide'))
 
-                        sun_burst_certified = px.sunburst(df[mask], path=['Gender', 'Education Level', 'Centre State',
-                                                                          'Centre Name', 'Job Role'], values='Certified', width=600, height=600)
+                        sun_burst_certified = px.sunburst(df[mask], path=['Centre State',
+                                                                          'Centre Name', 'Job Role'], values='Certified', color_discrete_sequence=px.colors.qualitative.Set2, width=500, height=500)
                         sun_burst_certified.update_layout(margin=dict(
                             t=0, b=0, l=0, r=0))
-                        sun_burst_certified.update_traces(
-                            insidetextorientation='auto')
+
+                        line_colors = [
+                            "#7CEA9C", '#50B2C0', "rgb(114, 78, 145)", "hsv(348, 66%, 90%)", "hsl(45, 93%, 58%)"]
                         # Get count of no. of people Certified
                         certified = (df[mask]['Certified'] == 1).sum()
 
-                        sun_burst_placed = px.sunburst(df[mask], path=['Gender', 'Education Level', 'Centre State',
-                                                                       'Centre Name', 'Job Role'], values='Candidate Placed',  width=600, height=600)
+                        sun_burst_placed = px.sunburst(df[mask], path=['Centre State',
+                                                                       'Centre Name', 'Job Role'], values='Candidate Placed', color_discrete_sequence=line_colors, width=500, height=500)
                         sun_burst_placed.update_layout(margin=dict(
-                            t=0, b=0, l=0, r=0))
-                        sun_burst_placed.update_traces(
-                            insidetextorientation='auto')
+                            t=20, b=0, l=0, r=0))
+
                         # Get count of no. of people Placed
                         placed = (df[mask]['Candidate Placed'] == 1).sum()
 
-                        st.plotly_chart(sun_burst_enrolled)
-                        st.markdown(
+                        # Get corresponding salaries in P1,p2 & p3
+                        p1 = (df[mask].loc[df['TP1'] == 1, 'Salary'])
+                        p2 = (df[mask].loc[df['TP2'] == 1, 'Salary'])
+                        p3 = (df[mask].loc[df['TP3'] == 1, 'Salary'])
+
+                        c11, c12 = st.columns(2)
+
+                        c11.plotly_chart(sun_burst_enrolled,
+                                         use_container_width=True)
+                        c11.markdown(
                             f'*Number of Candidates Enrolled :{number_of_results}*')
 
-                        st.plotly_chart(sun_burst_certified)
-                        st.markdown(
+                        c12.plotly_chart(sun_burst_certified,
+                                         use_container_width=True)
+                        c12.markdown(
                             f'*Number of Candidates Certified :{certified}*')
 
-                        st.plotly_chart(sun_burst_placed)
-                        st.markdown(f'*Number of Candidates Placed :{placed}*')
+                        s11, s12 = st.columns(2)
+                        s11.plotly_chart(sun_burst_placed,
+                                         use_container_width=True)
+                        s11.markdown(
+                            f'*Number of Candidates Placed :{placed}*')
 
-                    else:
-                        # Replace Duplicates in GENDER
-                        df.replace(to_replace=['F', 'Female '],
-                                   value='Female', inplace=True)
-                        df.replace(to_replace='M', value='Male', inplace=True)
+                        fig = go.Figure()
+                        Months = ['TP1', 'TP2', 'TP3']
+                        # To drop null values while plotting salaries plot
+                        df1 = df.drop(
+                            df.loc[df['Salary'] == 'No'].index)
+                        for month in Months:
+                            fig.add_trace(go.Violin(y=df1.loc[df1[month] == 1, 'Salary'],
+                                                    name=month,
+                                                    box_visible=True,
+                                                    meanline_visible=True))
+                            fig.update_layout(
+                                yaxis_title="Salaries")
+                            fig.update_layout(margin=dict(
+                                t=20, b=0, l=0, r=0))
 
-                        # CLeaning the data by Replacing the Duplicates EDUCATION
-                        df.replace(to_replace=['S.S.C Pass', '10th class', 'SSC PASS',
-                                               'Intermediate Fail', 'SSC', 'Ssc'], value='10th Class', inplace=True)
-                        df.replace(to_replace=['Intermediate Pass', 'Intermediate', 'INTER', 'MPC', 'BIPC', 'Inter', 'H.E.C', 'Inter pass',
-                                               'INTER PASS', 'VOCATIONAL', 'OCATIONAL', 'CEC', 'HEC', 'CCP', 'D.El.Ed', 'Ttc', 'CGA', ], value='12th Class', inplace=True)
-                        df.replace(to_replace=['Degree', 'BE/B.Tech Pass', 'B.tech', 'Degree Pass', 'B.sc', 'B.SC', 'BSC', 'BiPC', 'B.Tech', 'B.tech Civil', 'B.Sc', 'B.tech EEE', 'BA',
-                                               'BCOM', 'B.PHARMACY', 'B.COM', 'B.A', 'B.A.', 'CIVIL ENGG', 'CIVIL', 'AGRICULTURE', 'BZC', 'EEE', 'Degreepass', 'DEGREE'], value='Under Graduate', inplace=True)
-                        df.replace(to_replace=['I.T.I', 'Iti'],
-                                   value='I.T.I', inplace=True)
-                        df.replace(to_replace=['Diploma Civil', 'Diploma'],
-                                   value='Diploma', inplace=True)
-                        df.replace(to_replace=['PG'], value='Post Graduate')
-                        df['Education Level'] = df['Education Level'].fillna(
-                            'Uneducated')
-                        df.replace(to_replace=['Mba'],
-                                   value='Masters', inplace=True)
+                        s12.markdown("<h4 style='text-align: center;'> 3 MONTHS SALARIES VISUALIZATION </h4>",
+                                     unsafe_allow_html=True)
+                        s12.plotly_chart(fig, use_container_width=True)
+
+                    elif df['Scheme'][0].split()[0] == 'DDUGKY':
 
                         # Cleaning data by replacing the duplicate values in it SCHEME
                         df.replace(to_replace=['DDUGKY 1', 'DDUGKY 2',
                                                'DDUGKY-3'], value='DDUGKY', inplace=True)
                         df['Scheme'] = df['Scheme'].fillna('DDUGKY')
-
-                        # Replacing Duplicates with desired ones! ASSESSED
-                        df.replace(
-                            to_replace=['Completed', 'YES'], value='Yes', inplace=True)
-                        df.replace(to_replace=['Absent', 'NO', 'Pending'],
-                                   value='No', inplace=True)
-                        df['Assessed'] = df['Assessed'].fillna('No')
 
                         # Duplicates & Null values CERTIFIED
                     # Duplicates & Null values CERTIFIED
@@ -323,20 +320,37 @@ def main():
                                                'PASS', 'Pending'], value='Yes', inplace=True)
                         df.replace(to_replace=['Failed', 'No', 'Fail', 'ABSENT',
                                                'FAIL', 'Absent'], value='No', inplace=True)
-                        df['Certified'] = df['Certified'].fillna('No')
+                        #Yes_No_vars = ['Yes', 'No']
+                        df['Certified'] = df['Certified'].fillna('Yes')
 
                         # Duplicates & Null values PLACED
-                        df.replace(to_replace=['P'], value='Yes', inplace=True)
-                        df.replace(to_replace=['NP', 'Drop out', 'NO'],
+                        df.replace(to_replace=['P', 'YES'],
+                                   value='Yes', inplace=True)
+                        df.replace(to_replace=['NP', 'Drop out', 'NO', 'ONGOING'],
                                    value='No', inplace=True)
                         df['Candidate Placed'] = df['Candidate Placed'].fillna(
                             'No')
 
+                        # Get True/ False values at P1, P2& P3 based on If salary was given!
+                        df['TP1'][df['Centre State'] ==
+                                  'Andhra Pradesh'] = df['Salary'].notna()
+                        df['TP2'][df['Centre State'] ==
+                                  'Andhra Pradesh'] = df['Salary'].notna()
+                        df['TP3'][df['Centre State'] ==
+                                  'Andhra Pradesh'] = df['Salary'].notna()
+
+                        # Fill null values
+                        df['TP1'] = df['TP1'].fillna('No')
+                        df['TP2'] = df['TP2'].fillna('No')
+                        df['TP3'] = df['TP3'].fillna('No')
+
+                        # Replace State as follows
+                        df['Centre State'].replace(
+                            to_replace='ANDHRA PRADESH', value='Andhra Pradesh', inplace=True)
+
                         # Converting Categorical to Numerical Data to get the values count while plotting the data
                         # A new column to know How many have enrolled!
                         df['Enrolled'] = 1
-                        df.loc[df['Assessed'] == "Yes", 'Assessed'] = 1
-                        df.loc[df['Assessed'] == "No", 'Assessed'] = 0
                         df.loc[df['Certified'] == "Yes", 'Certified'] = 1
                         df.loc[df['Certified'] == "No", 'Certified'] = 0
                         df.loc[df['Candidate Placed'] ==
@@ -345,12 +359,31 @@ def main():
                                "No", 'Candidate Placed'] = 0
 
                         # For P1, P2 & P3 ,to know have they stayed for 1, 2 or 3 months
-                        df.loc[df['P1'] == "Yes", 'P1'] = 1
-                        df.loc[df['P1'] == "No", 'P1'] = 0
-                        df.loc[df['P2'] == "Yes", 'P2'] = 1
-                        df.loc[df['P2'] == "No", 'P2'] = 0
-                        df.loc[df['P3'] == "Yes", 'P3'] = 1
-                        df.loc[df['P3'] == "No", 'P3'] = 0
+                        df.loc[df['TP1'] == "Yes", 'TP1'] = 1
+                        df.loc[df['TP1'] == "No", 'TP1'] = 0
+                        df.loc[df['TP2'] == "Yes", 'TP2'] = 1
+                        df.loc[df['TP2'] == "No", 'TP2'] = 0
+                        df.loc[df['TP3'] == "Yes", 'TP3'] = 1
+                        df.loc[df['TP3'] == "No", 'TP3'] = 0
+
+                        # Similarly, if true, then salary was given!
+                        df.loc[df['TP1'] == True, 'TP1'] = 1
+                        df.loc[df['TP1'] == False, 'TP1'] = 0
+                        df.loc[df['TP2'] == True, 'TP2'] = 1
+                        df.loc[df['TP2'] == False, 'TP2'] = 0
+                        df.loc[df['TP3'] == True, 'TP3'] = 1
+                        df.loc[df['TP3'] == False, 'TP3'] = 0
+
+                        # To get the 'Year' they've worked in!
+                        df_arr = []
+
+                        for val in df['Year']:
+                            if type(val) == str:
+                                df_arr.append(int(val.split('-')[0]))
+                            elif type(val) == datetime.datetime:
+                                df_arr.append(val.timetuple().tm_year)
+
+                        df['Year'] = df_arr
 
                         # Converting String values to Numeric for analysis
 
@@ -405,122 +438,116 @@ def main():
                         df.replace(
                             to_replace=['₹ 1,696', '₹ 2,634'], value=2000, inplace=True)
 
-                        # Fill null values with mean of salary
-                        df['Salary'] = (df['Salary'].fillna(
-                            df['Salary'].mean()).round(0))
-
                         # Fill all the rest null values in P1,P2 & P3 with 0(as NO)
-                        df.fillna(0, inplace=True)
+                        #df.fillna(0, inplace=True)
 
                         # STREAMLIT USAGE
-                        gender = df['Gender'].unique().tolist()
-                        Education = df['Education Level'].unique().tolist()
                         states = df['Centre State'].unique().tolist()
                         center_name = df['Centre Name'].unique().tolist()
                         job_role = df['Job Role'].unique().tolist()
                         scheme = df['Scheme'].unique().tolist()
+                        year = df['Year'].unique().tolist()
+
+                        # Year slider
+                        year_selection = st.slider('YEAR:',
+                                                   min_value=min(year),
+                                                   max_value=max(year),
+                                                   value=(min(year), max(year)))
 
                         c1, c2 = st.columns(2)
-                        # Multiple Gender Selection
-                        gender_selection = c1.multiselect('GENDER :',
-                                                          gender)  # Set default=gener(if by default all values r needed!)
-                        # Multiple Schemes Selection
-                        m1 = (df['Gender'].isin(gender_selection))
-                        filter_scheme = df[m1]['Scheme'].unique().tolist()
-                        # Scheme Selection
-                        scheme_selection = c2.multiselect('SCHEME :',
-                                                          filter_scheme)
-
-                        c3, c4 = st.columns(2)
-                        # Multiple Education Qualifications Selection
-                        m2 = (df['Gender'].isin(gender_selection)) & (
-                            df['Scheme'].isin(scheme_selection))
-                        filter_education = df[m2]['Education Level'].unique(
-                        ).tolist()
-                        # Education Selection
-                        education_selection = c3.multiselect('EDUCATION :',
-                                                             filter_education)
+                        scheme_selection = c1.multiselect(
+                            'SCHEME :', scheme, default=scheme)
 
                         # Multiple States Selection
-                        m3 = (df['Gender'].isin(gender_selection)) & (df['Scheme'].isin(
-                            scheme_selection)) & (df['Education Level'].isin(education_selection))
-                        states_filter = df[m3]['Centre State'].unique(
+                        m1 = (df['Scheme'].isin(scheme_selection)) & (
+                            df['Year'].isin(year_selection))
+                        states_filter = df[m1]['Centre State'].unique(
                         ).tolist()
                         # States selection
-                        states_selection = c4.multiselect('STATE :',
+                        states_selection = c2.multiselect('STATE :',
                                                           states_filter)  # Set default=states(if by default all values r needed!)
                         # c5, c6 = st.columns(2)
                         # Multiple Centres Selection
-                        m4 = (df['Gender'].isin(gender_selection)) & (df['Scheme'].isin(scheme_selection)) & (
-                            df['Education Level'].isin(education_selection)) & (df['Centre State'].isin(states_selection))
-                        centre_filter = df[m4]['Centre Name'].unique().tolist()
+                        m2 = (df['Scheme'].isin(scheme_selection)) & (df['Year'].isin(year_selection)) & (
+                            df['Centre State'].isin(states_selection))
+                        centre_filter = df[m2]['Centre Name'].unique().tolist()
                         center_name_selection = st.multiselect('CENTER :',  # Use " & (df['Centre Name'].isin(center_name_selection)) " when uncommented
                                                                centre_filter)
 
                         # Filter Data Based on User Selection
-                        mask = (df['Gender'].isin(gender_selection)) & (df['Education Level'].isin(education_selection)) & (
-                            df['Centre State'].isin(states_selection)) & (df['Scheme'].isin(scheme_selection)) & (df['Centre Name'].isin(center_name_selection))
+                        mask = (df['Scheme'].isin(scheme_selection)) & (df['Year'].isin(year_selection)) & (df['Centre State'].isin(
+                            states_selection)) & (df['Centre Name'].isin(center_name_selection))
 
                         number_of_results = df[mask].shape[0]
                         st.markdown(
                             f'*Available Results :{number_of_results}*')
-                        st.markdown("<h2 style='text-align: left;'> Visualization </h2>",
+                        st.markdown("<h1 style='text-align: center; '> Visualization </h1>",
                                     unsafe_allow_html=True)
 
-                        sun_burst_enrolled = px.sunburst(df[mask], path=['Gender', 'Education Level', 'Centre State',
-                                                                         'Centre Name', 'Job Role'], values='Enrolled',
-                                                         width=600, height=600)
+                        sun_burst_enrolled = px.sunburst(df[mask], path=['Centre State',
+                                                                         'Centre Name', 'Job Role'], values='Enrolled', color_discrete_sequence=px.colors.qualitative.Set3, width=500, height=500)
                         sun_burst_enrolled.update_layout(margin=dict(
                             t=0, b=0, l=0, r=0))
                         # sun_burst_enrolled.update_layout(uniformtext=dict(minsize=10,mode='hide'))
 
-                        sun_burst_certified = px.sunburst(df[mask], path=['Gender', 'Education Level', 'Centre State',
-                                                                          'Centre Name', 'Job Role'], values='Certified', width=600, height=600)
+                        sun_burst_certified = px.sunburst(df[mask], path=['Centre State',
+                                                                          'Centre Name', 'Job Role'], values='Certified', color_discrete_sequence=px.colors.qualitative.Set2, width=500, height=500)
                         sun_burst_certified.update_layout(margin=dict(
                             t=0, b=0, l=0, r=0))
 
+                        line_colors = [
+                            "#7CEA9C", '#50B2C0', "rgb(114, 78, 145)", "hsv(348, 66%, 90%)", "hsl(45, 93%, 58%)"]
                         # Get count of no. of people Certified
                         certified = (df[mask]['Certified'] == 1).sum()
 
-                        sun_burst_placed = px.sunburst(df[mask], path=['Gender', 'Education Level', 'Centre State',
-                                                                       'Centre Name', 'Job Role'], values='Candidate Placed',  width=600, height=600)
+                        sun_burst_placed = px.sunburst(df[mask], path=['Centre State',
+                                                                       'Centre Name', 'Job Role'], values='Candidate Placed', color_discrete_sequence=line_colors, width=500, height=500)
                         sun_burst_placed.update_layout(margin=dict(
-                            t=0, b=0, l=0, r=0))
+                            t=20, b=0, l=0, r=0))
 
                         # Get count of no. of people Placed
                         placed = (df[mask]['Candidate Placed'] == 1).sum()
 
                         # Get corresponding salaries in P1,p2 & p3
-                        p1 = (df[mask].loc[df['P1'] == 1, 'Salary'])
-                        p2 = (df[mask].loc[df['P2'] == 1, 'Salary'])
-                        p3 = (df[mask].loc[df['P3'] == 1, 'Salary'])
+                        p1 = (df[mask].loc[df['TP1'] == 1, 'Salary'])
+                        p2 = (df[mask].loc[df['TP2'] == 1, 'Salary'])
+                        p3 = (df[mask].loc[df['TP3'] == 1, 'Salary'])
 
-                        st.plotly_chart(sun_burst_enrolled)
-                        st.markdown(
+                        c11, c12 = st.columns(2)
+
+                        c11.plotly_chart(sun_burst_enrolled,
+                                         use_container_width=True)
+                        c11.markdown(
                             f'*Number of Candidates Enrolled :{number_of_results}*')
 
-                        st.plotly_chart(sun_burst_certified)
-                        st.markdown(
+                        c12.plotly_chart(sun_burst_certified,
+                                         use_container_width=True)
+                        c12.markdown(
                             f'*Number of Candidates Certified :{certified}*')
 
-                        st.plotly_chart(sun_burst_placed)
-                        st.markdown(f'*Number of Candidates Placed :{placed}*')
-
-                        st.markdown("<h3 style='text-align: center;'> 3 Months Salaries( TP1, TP2 & TP3) </h3>",
-                                    unsafe_allow_html=True)
+                        s11, s12 = st.columns(2)
+                        s11.plotly_chart(sun_burst_placed,
+                                         use_container_width=True)
+                        s11.markdown(
+                            f'*Number of Candidates Placed :{placed}*')
 
                         fig = go.Figure()
-                        Months = ['P1', 'P2', 'P3']
-
+                        Months = ['TP1', 'TP2', 'TP3']
+                        # To drop null values while plotting salaries plot
+                        df1 = df[mask].dropna()
                         for month in Months:
-                            fig.add_trace(go.Violin(y=df[mask].loc[df[month] == 1, 'Salary'],
+                            fig.add_trace(go.Violin(y=df1.loc[df[month] == 1, 'Salary'],
                                                     name=month,
                                                     box_visible=True,
                                                     meanline_visible=True))
-                            fig.update_layout(width=800, height=600,
-                                              yaxis_title="Salaries")
+                            fig.update_layout(
+                                yaxis_title="Salaries")
+                            fig.update_layout(margin=dict(
+                                t=20, b=0, l=0, r=0))
 
-                        st.plotly_chart(fig)
+                        s12.markdown("<h4 style='text-align: center;'> 3 MONTHS SALARIES VISUALIZATION </h4>",
+                                     unsafe_allow_html=True)
+                        s12.plotly_chart(fig, use_container_width=True)
 
                 except Exception as e:
                     print(e)
