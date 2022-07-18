@@ -11,5 +11,9 @@
 ![image](https://user-images.githubusercontent.com/66252916/179466614-ab55cb85-3635-4aea-9fbc-8a8343fa4319.png)
 ![image](https://user-images.githubusercontent.com/66252916/179466781-404ee74a-2c52-4cf0-91ad-7a8b1d8c526d.png)
 ## In-depth (To know indepth details about a centre or state, we can either hover to see data or click on it to see in more specifically (say Job roles)):
-![image](https://user-images.githubusercontent.com/66252916/179467437-7893caca-2151-452b-a42a-64103ccafae8.png)
+### Click:
+![image](https://user-images.githubusercontent.com/66252916/179467747-c2c2f2b7-2d31-4465-b76b-b2c617df2f64.png)
+### Hover (when hovered on Hand-Embroidery Job-Role, all required Details are being shown):
+![image](https://user-images.githubusercontent.com/66252916/179467888-26956258-81bd-4a46-87d5-21d18b533eb1.png)
+
 
