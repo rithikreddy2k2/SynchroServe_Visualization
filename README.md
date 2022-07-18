@@ -10,3 +10,6 @@
 ## Visualization:
 ![image](https://user-images.githubusercontent.com/66252916/179466614-ab55cb85-3635-4aea-9fbc-8a8343fa4319.png)
 ![image](https://user-images.githubusercontent.com/66252916/179466781-404ee74a-2c52-4cf0-91ad-7a8b1d8c526d.png)
+## In-depth (To know indepth details about a centre or state, we can either hover to see data or click on it to see in more specifically (say Job roles)):
+![image](https://user-images.githubusercontent.com/66252916/179467437-7893caca-2151-452b-a42a-64103ccafae8.png)
+
